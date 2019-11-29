@@ -1,0 +1,20 @@
+---
+rhel_image:
+  path: /var/lib/libvirt/images/rhel-8.1-x86_64-kvm.qcow2
+  format: qcow2
+
+undercloud_image:
+  path: "{{ undercloud_image_path|default('{}-base.qcow2'.format(undercloud_name)) }}"
+  format: qcow2
+  size: 100g
+
+undercloud_keys:
+  - https://github.com/larsks.keys
+
+redhat_repositories:
+  - rhel-8-for-x86_64-baseos-rpms
+  - rhel-8-for-x86_64-appstream-rpms
+  - rhel-8-for-x86_64-highavailability-rpms
+  - ansible-2.8-for-rhel-8-x86_64-rpms
+  - openstack-15-for-rhel-8-x86_64-rpms
+  - fast-datapath-for-rhel-8-x86_64-rpms

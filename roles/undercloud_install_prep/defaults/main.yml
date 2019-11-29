@@ -1,0 +1,5 @@
+---
+container_images_file: containers-prepare-parameter.yaml
+container_credentials_file: containers-prepare-credentials.yaml
+undercloud_interface: eth1
+undercloud_masquerade_ctlplane: "true"

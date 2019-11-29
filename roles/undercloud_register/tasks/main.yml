@@ -1,0 +1,20 @@
+---
+- name: register system
+  redhat_subscription:
+    state: present
+    username: "{{ redhat_username }}"
+    password: "{{ redhat_password }}"
+    auto_attach: true
+
+- name: attach to pools
+  redhat_subscription:
+    state: present
+    username: "{{ redhat_username }}"
+    password: "{{ redhat_password }}"
+    pool_ids: "{{ redhat_pool_ids }}"
+  when: redhat_pool_ids|default(false)
+
+- name: enable repositories
+  rhsm_repository:
+    name: "{{ item }}"
+  loop: "{{ redhat_repositories|default([]) }}"

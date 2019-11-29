@@ -1,0 +1,22 @@
+---
+- name: resize vda1
+  command: >-
+    growpart /dev/vda 1
+  vars:
+    part: "{{ ansible_devices.vda.partitions.vda1 }}"
+  when: (part.sectors|int * part.sectorsize|int) / (1024*1024) < 20000
+  register: part_resize
+
+- name: resize root fs
+  command: >-
+    xfs_growfs /
+  when: part_resize is changed
+
+- name: set hostname
+  command: >-
+    hostnamectl set-hostname {{ undercloud_hostname }}
+
+- name: ensure hosts entry for undercloud
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ ansible_default_ipv4.address }} {{ undercloud_hostname }}"

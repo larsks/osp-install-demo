@@ -1,0 +1,30 @@
+---
+- name: install tripleoclient
+  package:
+    state: present
+    name: python3-tripleoclient
+
+- name: prepare container images
+  become: true
+  become_user: stack
+  command: >-
+    openstack tripleo container image prepare default
+    --local-push-destination
+    --output-env-file {{ container_images_file }}
+  args:
+    chdir: "{{ stack_home }}"
+    creates: "{{ container_images_file }}"
+
+- name: generate registry credentials
+  become: true
+  become_user: stack
+  template:
+    src: containers-prepare-credentials.j2.yaml
+    dest: "{{ stack_home }}/{{ container_credentials_file }}"
+
+- name: generate undercloud.conf
+  become: true
+  become_user: stack
+  template:
+    src: undercloud.j2.conf
+    dest: "{{ stack_home }}/undercloud.conf"

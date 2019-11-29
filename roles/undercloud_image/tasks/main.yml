@@ -1,0 +1,32 @@
+---
+- name: create undercloud base image
+  command: >-
+    qemu-img create
+    -b {{ rhel_image.path }}
+    -F {{ rhel_image.format }}
+    -f {{ undercloud_image.format }}
+    {{ undercloud_image.path }} {{ undercloud_image.size }}
+  args:
+    creates: "{{ undercloud_image.path }}"
+  register: undercloud_image_create
+
+- name: create work directory
+  tempfile:
+    state: directory
+  register: workdir
+
+- name: fetch authorized keys
+  command: >-
+    curl -a -o {{ workdir.path }}/authorized_keys {{ item }}
+  args:
+    warn: false
+  loop: "{{ undercloud_keys }}"
+
+- name: configure undercloud base image
+  when: undercloud_image_create is changed
+  command: >-
+    virt-customize -a {{ undercloud_image.path }}
+    --mkdir /root/.ssh \
+    --upload {{ workdir.path }}/authorized_keys:/root/.ssh/authorized_keys
+    --run {{ role_path }}/files/customize.sh
+    --selinux-relabel

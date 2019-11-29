@@ -1,0 +1,23 @@
+---
+- name: create stack user
+  user:
+    name: stack
+    create_home: true
+
+- name: grant sudo privileges to stack user
+  copy:
+    dest: /etc/sudoers.d/stack
+    mode: "440"
+    owner: root
+    group: root
+    content:
+      stack ALL=(root) NOPASSWD:ALL
+
+- name: lookup stack user
+  command: >-
+    getent passwd stack
+  register: stack_passwd
+
+- name: extract stack user home directory
+  set_fact:
+    stack_home: "{{ stack_passwd.stdout.split(':')[5] }}"

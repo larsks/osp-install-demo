@@ -1,0 +1,12 @@
+---
+plugin: libvirt
+uri: qemu:///system
+networks:
+  - 192.168.122.0/24
+loglevel: debug
+
+compose:
+  ansible_user: '"root"'
+
+groups:
+  undercloud: inventory_hostname.startswith('undercloud')

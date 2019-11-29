@@ -1,0 +1,6 @@
+---
+undercloud_name: undercloud
+undercloud_vcpus: 8
+undercloud_ram: 24000
+
+openstack_switch: sw0
