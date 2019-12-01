@@ -18,3 +18,15 @@ redhat_repositories:
   - ansible-2.8-for-rhel-8-x86_64-rpms
   - openstack-15-for-rhel-8-x86_64-rpms
   - fast-datapath-for-rhel-8-x86_64-rpms
+
+overcloud_hosts:
+  controller:
+    name: controller
+    count: "{{ controller_count|default(3) }}"
+    ram: "{{ controller_ram|default(16000) }}"
+    disk: "{{ controller_disk|default(50) }}"
+  compute:
+    name: compute
+    count: "{{ compute_count|default(2) }}"
+    ram: "{{ compute_ram|default(16000) }}"
+    disk: "{{ compute_disk|default(50) }}"

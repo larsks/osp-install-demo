@@ -1,0 +1,137 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: check disks
+      command: >-
+        virsh vol-info --pool default {{ item.1.name }}-{{ item.0 }}.qcow2
+      environment:
+        LIBVIRT_DEFAULT_URI: qemu:///system
+      register: disk_check
+      failed_when: false
+      changed_when: disk_check.rc != 0
+      loop: >-
+        {{
+        range(_controller_count|int)|list|zip([overcloud_hosts.controller] * _controller_count|int)|list +
+        range(_compute_count|int)|list|zip([overcloud_hosts.compute] * _compute_count|int)|list
+        }}
+      vars:
+        _controller_count: "{{ overcloud_hosts.controller.count }}"
+        _compute_count: "{{ overcloud_hosts.compute.count }}"
+
+    - name: create disks
+      command: >-
+        virsh vol-create-as --pool default
+        {{ item.item.1.name }}-{{ item.item.0 }}.qcow2
+        {{ item.item.1.disk }}
+      environment:
+        LIBVIRT_DEFAULT_URI: qemu:///system
+      when: item is changed
+      loop: "{{ disk_check.results }}"
+
+    - name: check for guests
+      command: >-
+        virsh domuuid {{ item.1.name }}-{{ item.0 }}
+      environment:
+        LIBVIRT_DEFAULT_URI: qemu:///system
+      register: guest_check
+      failed_when: false
+      changed_when: guest_check.rc != 0
+      loop: >-
+        {{
+        range(_controller_count|int)|list|zip([overcloud_hosts.controller] * _controller_count|int)|list +
+        range(_compute_count|int)|list|zip([overcloud_hosts.compute] * _compute_count|int)|list
+        }}
+      vars:
+        _controller_count: "{{ overcloud_hosts.controller.count }}"
+        _compute_count: "{{ overcloud_hosts.compute.count }}"
+
+    - name: create guests
+      shell: |
+        virt-install \
+          -r {{ item.item.1.ram }} \
+          --disk vol=default/{{ item.item.1.name }}-{{ item.item.0 }}.qcow2 \
+          -n {{ item.item.1.name }}-{{ item.item.0 }} \
+          -w network=default \
+          -w bridge=sw0,virtualport_type=openvswitch \
+          --os-variant rhel7.7 \
+          --print-xml | virsh define /dev/stdin
+      environment:
+        LIBVIRT_DEFAULT_URI: qemu:///system
+      when: item is changed
+      loop: "{{ guest_check.results }}"
+
+#    - name: check for vbmc instances
+#      become: true
+#      command: >-
+#        vbmc show {{ item.1.name }}-{{ item.0 }}
+#      register: vbmc_check
+#      failed_when: false
+#      changed_when: vbmc_check.rc != 0
+#      loop: >-
+#        {{
+#        range(_controller_count|int)|list|zip([overcloud_hosts.controller] * _controller_count|int)|list +
+#        range(_compute_count|int)|list|zip([overcloud_hosts.compute] * _compute_count|int)|list
+#        }}
+#      vars:
+#        _controller_count: "{{ overcloud_hosts.controller.count }}"
+#        _compute_count: "{{ overcloud_hosts.compute.count }}"
+
+    - name: check for vbmc instances
+      tags: [vbmc]
+      become: true
+      command: >-
+        vbmc list -f json
+      register: vbmc_check
+
+    - name: create vbmc instances
+      tags: [vbmc]
+      become: true
+      command: >-
+        vbmc add {{ item.1.name }}-{{ item.0 }}
+        --port {{ 6230 + vbmc_index }}
+      when: >-
+        vbmc_check.stdout|
+        from_json|json_query('[?"Domain name" == `{}-{}`]'.format(
+        item.1.name, item.0
+        )) == []
+      loop: >-
+        {{
+        range(_controller_count|int)|list|zip([overcloud_hosts.controller] * _controller_count|int)|list +
+        range(_compute_count|int)|list|zip([overcloud_hosts.compute] * _compute_count|int)|list
+        }}
+      loop_control:
+        index_var: vbmc_index
+        label: "{{ item.1.name }}-{{ item.0 }}"
+      vars:
+        _controller_count: "{{ overcloud_hosts.controller.count }}"
+        _compute_count: "{{ overcloud_hosts.compute.count }}"
+
+    - name: check for vbmc instances
+      tags: [vbmc]
+      become: true
+      command: >-
+        vbmc list -f json
+      register: vbmc_check
+
+    - name: start vbmc instances
+      tags: [vbmc]
+      become: true
+      command: >-
+        vbmc start {{ item.1.name }}-{{ item.0 }}
+      when: >-
+        vbmc_check.stdout|
+        from_json|json_query('[?"Domain name" == `{}-{}`].Status'.format(
+        item.1.name, item.0
+        )) != ['running']
+      loop: >-
+        {{
+        range(_controller_count|int)|list|zip([overcloud_hosts.controller] * _controller_count|int)|list +
+        range(_compute_count|int)|list|zip([overcloud_hosts.compute] * _compute_count|int)|list
+        }}
+      loop_control:
+        index_var: vbmc_index
+        label: "{{ item.1.name }}-{{ item.0 }}"
+      vars:
+        _controller_count: "{{ overcloud_hosts.controller.count }}"
+        _compute_count: "{{ overcloud_hosts.compute.count }}"

@@ -1,0 +1,8 @@
+---
+overcloud_image_packages:
+  - rhosp-director-images
+  - rhosp-director-images-ipa
+
+overcloud_image_tarballs:
+  - /usr/share/rhosp-director-images/overcloud-full-latest-15.0.tar
+  - /usr/share/rhosp-director-images/ironic-python-agent-latest-15.0.tar

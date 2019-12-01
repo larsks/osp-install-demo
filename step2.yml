@@ -1,0 +1,24 @@
+---
+- hosts: undercloud
+  tasks:
+    - name: set up overcloud images
+      include_role:
+        name: overcloud_images
+
+    - name: check for dns configuration
+      become: true
+      become_user: stack
+      shell: |-
+        . $HOME/stackrc
+        openstack subnet show ctlplane-subnet -f json
+      register: dns_check
+      changed_when: false
+
+    - name: set ctlplane dns server
+      become: true
+      become_user: stack
+      shell: |-
+        . $HOME/stackrc
+        openstack subnet set ctlplane-subnet \
+          --dns-nameserver 192.168.122.1
+      when: (dns_check.stdout|from_json).dns_nameservers == ""

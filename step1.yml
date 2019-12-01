@@ -1,0 +1,54 @@
+---
+- name: prepare undercloud guest
+  tags: [prepare]
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: configure undercloud image
+      include_role:
+        name: undercloud_image
+    - name: create undercloud guest
+      include_role:
+        name: undercloud_guest
+    - name: give inventory time to settle
+      pause:
+        seconds: 5
+
+- name: refresh inventory
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - meta: refresh_inventory
+
+- hosts: undercloud
+  name: configure undercloud
+  tasks:
+    - name: get podman version
+      command: >-
+        rpm -q podman --qf '%{VERSION}-%{RELEASE}\n'
+      args:
+        warn: false
+      register: podman_version
+
+    - name: fail if podman version is bad
+      fail:
+        msg: "Podman version is incompatible with director"
+      when: podman_version.stdout.startswith('1.4.2-5')
+
+    - name: basic undercloud configuration
+      tags: [config]
+      include_role:
+        name: undercloud_config
+
+    - name: register undercloud
+      tags: [register, extended]
+      include_role:
+        name: undercloud_register
+
+    - name: prepare stack user
+      include_role:
+        name: stack_user
+
+    - name: prepare undercloud install
+      include_role:
+        name: undercloud_install_prep
