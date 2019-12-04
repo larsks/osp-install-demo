@@ -2,7 +2,7 @@
 - name: write nodes.json on undercloud
   copy:
     dest: ~/nodes.json
-    content: "{{ hostvars.virthost.nodes_json.stdout }}"
+    content: "{{ hostvars[groups.virthost[0]].nodes_json.stdout }}"
 
 - name: import nodes.json
   shell: |
