@@ -1,0 +1,16 @@
+---
+plugin: libvirt_inventory
+uri: qemu+ssh://root@neu-19-5-stackcomp.kzn.moc/system
+include_inactive: true
+networks:
+  - 192.168.122.0/24
+loglevel: debug
+
+compose:
+  ansible_user: '"root"'
+  ansible_ssh_common_args: '"-o ProxyJump=root@neu-19-5-stackcomp.kzn.moc"'
+
+groups:
+  undercloud: inventory_hostname.startswith('undercloud')
+  controller: inventory_hostname.startswith('controller')
+  compute: inventory_hostname.startswith('compute')
