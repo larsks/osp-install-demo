@@ -19,7 +19,8 @@ class Libvirt:
 
     def node(self, name):
         dom = self.conn.lookupByName(name)
-        domxml = lxml.etree.fromstring(dom.XMLDesc())
+        domxml = lxml.etree.fromstring(dom.XMLDesc(
+            flags=libvirt.VIR_DOMAIN_XML_INACTIVE))
         bmcinfo = self._get_vbmc_info(name)
 
         data = {
