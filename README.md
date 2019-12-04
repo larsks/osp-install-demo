@@ -1,3 +1,12 @@
+## Running the playbooks:
+
+- Run `step1.yml`.
+- Log into the undercloud and run `openstack undercloud install`
+- Run `step2.yml`
+- Run `step3.yml`
+- Run `step4.yml`
+- Log into the undercloud and run `sh overcloud-deploy.sh`
+
 ## Network configuration
 
 - eth0: provisioning network

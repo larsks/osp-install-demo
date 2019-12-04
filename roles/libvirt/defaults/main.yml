@@ -1,0 +1,9 @@
+---
+libvirt_packages:
+  - libvirt
+  - libvirt-client
+  - libvirt-daemon-config-network
+  - virt-install
+  - libguestfs-tools-c
+
+libvirt_default_pool_directory: /var/lib/libvirt/images

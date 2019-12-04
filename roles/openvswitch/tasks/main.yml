@@ -1,0 +1,11 @@
+---
+- name: ensure openvswitch is installed
+  package:
+    name: "{{ openvswitch_packages }}"
+    state: present
+
+- name: ensure openvswitch service is active
+  service:
+    name: openvswitch
+    state: started
+    enabled: true

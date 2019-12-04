@@ -13,8 +13,9 @@
   command: >-
     virt-install
     -n {{ undercloud_name }}
+    --cpu host-passthrough
     --vcpus {{ undercloud_vcpus }}
-    -r {{ undercloud_ram }}
+    --memory memory={{ undercloud_ram }}
     --disk path={{ undercloud_image_path }} --import
     --os-variant rhel7.7 --noautoconsole
     -w network=default

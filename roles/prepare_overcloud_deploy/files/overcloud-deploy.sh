@@ -12,6 +12,7 @@ deploy_args=(
 	-e $TEMPLATES/environments/network-isolation.yaml
 	-e $TEMPLATES/environments/network-environment.yaml
 	-e templates/custom-networks.yaml
+	-e templates/extraconfig.yaml
 )
 
 openstack overcloud deploy \

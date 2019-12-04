@@ -1,0 +1,49 @@
+---
+- name: check if openstack switch exists
+  become: true
+  command: >-
+    ovs-vsctl br-exists {{ openstack_switch }}
+  register: switch_exists
+  failed_when: false
+  changed_when: switch_exists.rc != 0
+
+- name: create undercloud switch
+  become: true
+  when: switch_exists is changed
+  command: >-
+    ovs-vsctl add-br {{ openstack_switch }}
+
+- name: check if openstack network exists
+  command: >-
+    virsh net-info openstack
+  register: libvirt_net
+  failed_when: false
+  changed_when: libvirt_net.rc != 0
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+
+- name: create openstack network
+  when: libvirt_net is changed
+  block:
+    - name: copy network definition to virthost
+      copy:
+        src: openstack_network.xml
+        dest: "{{ osp_demo_workdir }}/openstack_network.xml"
+
+    - name: define openstack network
+      command: >-
+        virsh net-define "{{ osp_demo_workdir }}/openstack_network.xml"
+      environment:
+        LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+
+    - name: start openstack network
+      command: >-
+        virsh net-start openstack
+      environment:
+        LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+
+    - name: autostart openstack network
+      command:
+        virsh net-autostart openstack
+      environment:
+        LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"

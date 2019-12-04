@@ -1,11 +1,11 @@
 ---
-- name: prepare virthost
+- name: ensure work directory exists
   hosts: virthost
   tags: [always]
   tasks:
     - name: ensure work directory is defined
       set_fact:
-        osp_demo_workdir: "{{ ansible_env.HOME }}/director-install-tmp"
+        osp_demo_workdir: "/tmp/director-install-tmp"
       when: osp_demo_workdir is not defined
 
     - name: ensure work directory exists
@@ -13,20 +13,36 @@
         path: "{{ osp_demo_workdir }}"
         state: directory
 
+- name: prepare virthost
+  hosts: virthost
+  tags: [virthost]
+  tasks:
+    - name: ensure openvswitch is installed
+      include_role:
+        name: openvswitch
+
+    - name: ensure libvirt is installed
+      include_role:
+        name: libvirt
+
+    - name: ensure libvirt is configured
+      include_role:
+        name: libvirt
+        tasks_from: configure.yml
+
 - name: prepare undercloud guest
-  tags: [prepare]
+  tags: [create-undercloud]
   hosts: virthost
   gather_facts: false
   tasks:
-    - name: configure libvirt
-      include_role:
-        name: libvirt
     - name: configure undercloud image
       include_role:
         name: undercloud_image
+
     - name: create undercloud guest
       include_role:
         name: undercloud_guest
+
     - name: give inventory time to settle
       pause:
         seconds: 5
@@ -39,9 +55,9 @@
 
 - hosts: undercloud
   name: configure undercloud
+  tags: [configure-undercloud]
   tasks:
     - name: basic undercloud configuration
-      tags: [config]
       include_role:
         name: undercloud_config
 
@@ -62,13 +78,3 @@
     - name: prepare undercloud install
       include_role:
         name: undercloud_install_prep
-
-- name: install the undercloud
-  hosts: undercloud
-  become: true
-  become_user: stack
-  when: install_undercloud|default(false)
-  tasks:
-    - name: install undercloud
-      command: >-
-        openstack undercloud install

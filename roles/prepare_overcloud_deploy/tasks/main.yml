@@ -9,7 +9,7 @@
     src: network_data.yaml
     dest: ~/network_data.yaml
 
-- name: copy network configs
+- name: copy templates
   copy:
     src: "{{ item }}"
     dest: "~/templates/{{ item }}"
@@ -17,3 +17,4 @@
     - network-controller.yaml
     - network-compute.yaml
     - custom-networks.yaml
+    - extraconfig.yaml

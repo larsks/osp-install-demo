@@ -1,49 +1,51 @@
 ---
-- name: check if openstack switch exists
-  become: true
-  command: >-
-    ovs-vsctl br-exists {{ openstack_switch }}
-  register: switch_exists
-  failed_when: false
-  changed_when: switch_exists.rc != 0
+- name: install libvirt packages
+  package:
+    name: "{{ libvirt_packages }}"
+    state: present
 
-- name: create undercloud switch
-  become: true
-  when: switch_exists is changed
-  command: >-
-    ovs-vsctl add-br {{ openstack_switch }}
+- name: activate libvirt service
+  service:
+    name: libvirtd
+    state: started
+    enabled: true
 
-- name: check if openstack network exists
+- name: check if default pool is available
   command: >-
-    virsh net-info openstack
-  register: libvirt_net
+    virsh pool-info default
+  register: default_pool
   failed_when: false
-  changed_when: libvirt_net.rc != 0
+  changed_when: default_pool.rc != 0
   environment:
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
 
-- name: create openstack network
-  when: libvirt_net is changed
+- name: create default pool
+  when: default_pool is changed
   block:
-    - name: copy network definition to virthost
-      copy:
-        src: openstack_network.xml
-        dest: "{{ osp_demo_workdir }}/openstack_network.xml"
+    - name: ensure images directory exists
+      file:
+        path: "{{ libvirt_default_pool_directory }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
 
-    - name: define openstack network
+    - name: define default pool
       command: >-
-        virsh net-define "{{ osp_demo_workdir }}/openstack_network.xml"
+        virsh pool-define-as default
+        --type dir
+        --target "{{ libvirt_default_pool_directory }}"
       environment:
         LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
 
-    - name: start openstack network
+    - name: start default pool
       command: >-
-        virsh net-start openstack
+        virsh pool-start default
       environment:
         LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
 
-    - name: autostart openstack network
-      command:
-        virsh net-autostart openstack
+    - name: mark default pool for autostart
+      command: >-
+        virsh pool-autostart default
       environment:
         LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
