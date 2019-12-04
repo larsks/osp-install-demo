@@ -26,7 +26,7 @@ overcloud_hosts:
   controller:
     name: controller
     count: "{{ controller_count|default(3) }}"
-    ram: "{{ controller_ram|default(16000) }}"
+    ram: "{{ controller_ram|default(8000) }}"
     disk: "{{ controller_disk|default(50) }}"
     vcpus: "{{ controller_vcpus|default(4) }}"
     networks:
@@ -43,5 +43,3 @@ overcloud_hosts:
     networks:
       - network=openstack,portgroup=internal,boot_order=1
       - network=default
-      - network=openstack,portgroup=external
-      - network=openstack,portgroup=floating
