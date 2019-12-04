@@ -1,0 +1,6 @@
+---
+undercloud_ram: 48000
+undercloud_vcpus: 12
+
+controller_ram: 12000
+compute_ram: 8000
