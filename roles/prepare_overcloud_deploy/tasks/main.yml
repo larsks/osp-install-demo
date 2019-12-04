@@ -1,0 +1,19 @@
+---
+- name: copy overcloud deploy script
+  copy:
+    src: overcloud-deploy.sh
+    dest: ~/overcloud-deploy.sh
+
+- name: copy network_data.yaml
+  copy:
+    src: network_data.yaml
+    dest: ~/network_data.yaml
+
+- name: copy network configs
+  copy:
+    src: "{{ item }}"
+    dest: "~/templates/{{ item }}"
+  loop:
+    - network-controller.yaml
+    - network-compute.yaml
+    - custom-networks.yaml

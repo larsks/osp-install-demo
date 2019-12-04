@@ -1,9 +1,26 @@
 ---
+- name: prepare virthost
+  hosts: virthost
+  tags: [always]
+  tasks:
+    - name: ensure work directory is defined
+      set_fact:
+        osp_demo_workdir: "{{ ansible_env.HOME }}/director-install-tmp"
+      when: osp_demo_workdir is not defined
+
+    - name: ensure work directory exists
+      file:
+        path: "{{ osp_demo_workdir }}"
+        state: directory
+
 - name: prepare undercloud guest
   tags: [prepare]
-  hosts: localhost
+  hosts: virthost
   gather_facts: false
   tasks:
+    - name: configure libvirt
+      include_role:
+        name: libvirt
     - name: configure undercloud image
       include_role:
         name: undercloud_image
@@ -23,18 +40,6 @@
 - hosts: undercloud
   name: configure undercloud
   tasks:
-    - name: get podman version
-      command: >-
-        rpm -q podman --qf '%{VERSION}-%{RELEASE}\n'
-      args:
-        warn: false
-      register: podman_version
-
-    - name: fail if podman version is bad
-      fail:
-        msg: "Podman version is incompatible with director"
-      when: podman_version.stdout.startswith('1.4.2-5')
-
     - name: basic undercloud configuration
       tags: [config]
       include_role:
@@ -45,6 +50,11 @@
       include_role:
         name: undercloud_register
 
+    - name: ensure a functional version of podman is installed
+      tags: [bugs]
+      include_role:
+        name: podman
+
     - name: prepare stack user
       include_role:
         name: stack_user
@@ -52,3 +62,13 @@
     - name: prepare undercloud install
       include_role:
         name: undercloud_install_prep
+
+- name: install the undercloud
+  hosts: undercloud
+  become: true
+  become_user: stack
+  when: install_undercloud|default(false)
+  tasks:
+    - name: install undercloud
+      command: >-
+        openstack undercloud install

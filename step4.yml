@@ -1,0 +1,26 @@
+- hosts: virthost
+  gather_facts: false
+  tasks:
+    - name: generate nodes.json
+      include_role:
+        name: nodes_json
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tasks:
+    - name: ensure templates directory exists
+      file:
+        path: ~/templates
+        state: directory
+
+    - include_role:
+        name: register_baremetal_nodes
+
+    - include_role:
+        name: inject_ca_trust
+
+    - tags: [deploy]
+      include_role:
+        name: prepare_overcloud_deploy

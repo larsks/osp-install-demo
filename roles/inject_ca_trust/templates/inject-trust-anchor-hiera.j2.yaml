@@ -1,0 +1,6 @@
+---
+parameter_defaults:
+  CAMap:
+    undercloud-ca:
+      content: |
+        {{ undercloud_ca_crt.stdout|indent(8) }}

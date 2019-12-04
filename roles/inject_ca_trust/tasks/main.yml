@@ -1,0 +1,10 @@
+---
+- name: read undercloud ca certificate
+  command: cat /etc/pki/ca-trust/source/anchors/cm-local-ca.pem
+  changed_when: false
+  register: undercloud_ca_crt
+
+- name: generate inject-trust-anchor-hiera.yaml
+  template:
+    src: inject-trust-anchor-hiera.j2.yaml
+    dest: ~/templates/inject-trust-anchor-hiera.yaml

@@ -1,0 +1,6 @@
+---
+parameter_defaults:
+  OvercloudControllerFlavor: control
+  OvercloudComputeFlavor: compute
+  ControllerCount: {{ groups.controller|length }}
+  ComputeCount: {{ groups.compute|length }}

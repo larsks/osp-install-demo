@@ -1,0 +1,16 @@
+---
+plugin: libvirt
+#uri: qemu:///session
+include_inactive: true
+networks:
+  - 192.168.122.0/24
+loglevel: debug
+
+compose:
+  ansible_user: '"root"'
+  ansible_ssh_common_args: '"-o ProxyJump=stack@esi-sandbox-1"'
+
+groups:
+  undercloud: inventory_hostname.startswith('undercloud')
+  controller: inventory_hostname.startswith('controller')
+  compute: inventory_hostname.startswith('compute')

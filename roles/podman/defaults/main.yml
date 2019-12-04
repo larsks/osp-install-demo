@@ -1,0 +1,4 @@
+---
+podman_packages:
+  - podman-1.4.2-7.module+el8.1.0+4907+d6deccf7.x86_64.rpm
+  - podman-manpages-1.4.2-7.module+el8.1.0+4907+d6deccf7.noarch.rpm

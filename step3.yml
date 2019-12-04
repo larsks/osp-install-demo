@@ -1,5 +1,5 @@
 ---
-- hosts: localhost
+- hosts: virthost
   gather_facts: false
   tasks:
     - name: check disks
@@ -23,7 +23,8 @@
       command: >-
         virsh vol-create-as --pool default
         {{ item.item.1.name }}-{{ item.item.0 }}.qcow2
-        {{ item.item.1.disk }}
+        {{ item.item.1.disk }}G
+        --format qcow2
       environment:
         LIBVIRT_DEFAULT_URI: qemu:///system
       when: item is changed
@@ -47,35 +48,22 @@
         _compute_count: "{{ overcloud_hosts.compute.count }}"
 
     - name: create guests
-      shell: |
-        virt-install \
-          -r {{ item.item.1.ram }} \
-          --disk vol=default/{{ item.item.1.name }}-{{ item.item.0 }}.qcow2 \
-          -n {{ item.item.1.name }}-{{ item.item.0 }} \
-          -w network=default \
-          -w bridge=sw0,virtualport_type=openvswitch \
-          --os-variant rhel7.7 \
-          --print-xml | virsh define /dev/stdin
+      shell: >-
+        virt-install
+        -r {{ item.item.1.ram }}
+        --vcpu {{ item.item.1.vcpus }}
+        --controller=scsi,model=virtio-scsi
+        --disk vol=default/{{ item.item.1.name }}-{{ item.item.0 }}.qcow2,bus=scsi
+        -n {{ item.item.1.name }}-{{ item.item.0 }}
+        {% for net in item.item.1.networks -%}
+        -w {{ net }}
+        {% endfor %}
+        --os-variant rhel7.7
+        --print-xml | virsh define /dev/stdin
       environment:
         LIBVIRT_DEFAULT_URI: qemu:///system
       when: item is changed
       loop: "{{ guest_check.results }}"
-
-#    - name: check for vbmc instances
-#      become: true
-#      command: >-
-#        vbmc show {{ item.1.name }}-{{ item.0 }}
-#      register: vbmc_check
-#      failed_when: false
-#      changed_when: vbmc_check.rc != 0
-#      loop: >-
-#        {{
-#        range(_controller_count|int)|list|zip([overcloud_hosts.controller] * _controller_count|int)|list +
-#        range(_compute_count|int)|list|zip([overcloud_hosts.compute] * _compute_count|int)|list
-#        }}
-#      vars:
-#        _controller_count: "{{ overcloud_hosts.controller.count }}"
-#        _compute_count: "{{ overcloud_hosts.compute.count }}"
 
     - name: check for vbmc instances
       tags: [vbmc]

@@ -4,6 +4,13 @@
     name: stack
     create_home: true
 
+- name: set authorized keys for stack user
+  authorized_key:
+    user: stack
+    state: present
+    key: "{{ item }}"
+  loop: "{{ undercloud_keys }}"
+
 - name: grant sudo privileges to stack user
   copy:
     dest: /etc/sudoers.d/stack
@@ -16,6 +23,7 @@
 - name: lookup stack user
   command: >-
     getent passwd stack
+  changed_when: false
   register: stack_passwd
 
 - name: extract stack user home directory

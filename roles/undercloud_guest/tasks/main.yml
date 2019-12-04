@@ -1,21 +1,9 @@
 ---
-- name: check if openstack switch exists
-  become: true
-  command: >-
-    ovs-vsctl br-exists {{ openstack_switch }}
-  register: switch_exists
-  failed_when: false
-  changed_when: switch_exists.rc != 0
-
-- name: create undercloud switch
-  become: true
-  when: switch_exists is changed
-  command: >-
-    ovs-vsctl add-br {{ openstack_switch }}
-
 - name: check if undercloud guest exists
   command: >-
-    virsh --connect qemu:///system domuuid {{ undercloud_name }}
+    virsh domuuid {{ undercloud_name }}
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
   register: guest_exists
   failed_when: false
   changed_when: guest_exists.rc != 0
@@ -23,21 +11,25 @@
 - name: create the undercloud
   when: guest_exists is changed
   command: >-
-    virt-install --connect qemu:///system
+    virt-install
     -n {{ undercloud_name }}
     --vcpus {{ undercloud_vcpus }}
     -r {{ undercloud_ram }}
-    --disk path={{ undercloud_image.path }} --import
+    --disk path={{ undercloud_image_path }} --import
     --os-variant rhel7.7 --noautoconsole
     -w network=default
-    -w bridge={{ openstack_switch }},virtualport_type=openvswitch
+    -w bridge={{ openstack_switch }},virtualport_type=openvswitch,portgroup=internal
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
 
 - name: wait for the undercloud to boot
   register: agent_check
   until: agent_check.rc == 0
   delay: 5
   retries: 12
-  failed_when: false
+  changed_when: false
   command: >-
     virsh -c qemu:///system
     qemu-agent-command {{ undercloud_name }} '{"execute": "guest-ping"}'
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"

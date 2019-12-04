@@ -1,32 +1,54 @@
 ---
+- name: set undercloud_image_path fact
+  set_fact:
+    undercloud_image_path: "{{ osp_demo_workdir }}/undercloud.qcow2"
+
 - name: create undercloud base image
   command: >-
     qemu-img create
     -b {{ rhel_image.path }}
     -F {{ rhel_image.format }}
-    -f {{ undercloud_image.format }}
-    {{ undercloud_image.path }} {{ undercloud_image.size }}
+    -f qcow2
+    {{ undercloud_image_path }} {{ undercloud_image_size }}
   args:
-    creates: "{{ undercloud_image.path }}"
+    creates: "{{ undercloud_image_path }}"
   register: undercloud_image_create
 
-- name: create work directory
-  tempfile:
-    state: directory
-  register: workdir
-
-- name: fetch authorized keys
-  command: >-
-    curl -a -o {{ workdir.path }}/authorized_keys {{ item }}
-  args:
-    warn: false
-  loop: "{{ undercloud_keys }}"
-
-- name: configure undercloud base image
+- name: configure undercloud image
   when: undercloud_image_create is changed
-  command: >-
-    virt-customize -a {{ undercloud_image.path }}
-    --mkdir /root/.ssh \
-    --upload {{ workdir.path }}/authorized_keys:/root/.ssh/authorized_keys
-    --run {{ role_path }}/files/customize.sh
-    --selinux-relabel
+  block:
+
+    - name: fetch authorized keys
+      command: >-
+        curl -a -o {{ osp_demo_workdir }}/authorized_keys {{ item }}
+      args:
+        warn: false
+      loop: "{{ undercloud_keys }}"
+
+    - name: apply https://access.redhat.com/solutions/4073061
+      tags: [bug]
+      include_tasks: solution_4073061.yml
+
+    - name: copy customization script to virthost
+      copy:
+        src: customize.sh
+        dest: "{{ osp_demo_workdir }}/customize.sh"
+
+    - name: configure undercloud base image
+      command: >-
+        virt-customize -a {{ undercloud_image_path }}
+        --mkdir /root/.ssh \
+        --upload {{ osp_demo_workdir }}/authorized_keys:/root/.ssh/authorized_keys
+        --run {{ osp_demo_workdir }}/customize.sh
+        --selinux-relabel
+      environment:
+        LIBGUESTFS_PATH: "{{ osp_demo_workdir }}/appliance"
+
+  rescue:
+
+    - name: delete undercloud image
+      file:
+        path: "{{ undercloud_image_path }}"
+        state: absent
+
+    - fail:

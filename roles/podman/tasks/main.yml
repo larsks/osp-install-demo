@@ -1,0 +1,27 @@
+---
+- name: get podman version
+  command: >-
+    rpm -q podman --qf '%{VERSION}-%{RELEASE}\n'
+  args:
+    warn: false
+  failed_when: false
+  register: podman_version
+
+- name: install appropriate version of podman
+  when: podman_version.rc != 0 or podman_version.stdout.startswith('1.4.2-5')
+  tags: [bugs]
+  block:
+    - name: copy packages to target
+      copy:
+        src: "{{ item }}"
+        dest: "."
+      loop: "{{ podman_packages }}"
+
+    - name: install packages
+      command: >-
+        yum -y localinstall
+        {% for pkg in podman_packages %}
+        {{ pkg }}
+        {% endfor %}
+      args:
+        warn: false

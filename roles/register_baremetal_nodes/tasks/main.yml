@@ -1,0 +1,57 @@
+---
+- name: write nodes.json on undercloud
+  copy:
+    dest: ~/nodes.json
+    content: "{{ hostvars.virthost.nodes_json.stdout }}"
+
+- name: import nodes.json
+  shell: |
+    . ~/stackrc
+    openstack overcloud node import ~/nodes.json &&
+    touch ~/.nodes_import
+  args:
+    creates: ~/.nodes_import
+
+- name: introspect nodes
+  shell: |
+    . ~/stackrc
+    openstack overcloud node introspect --all-manageable --provide &&
+    touch ~/.nodes_introspect
+  args:
+    creates: ~/.nodes_introspect
+
+- name: set role properties on controllers
+  shell: |
+    . ~/stackrc
+    openstack baremetal node set \
+      --property capabilities='profile:control,boot_option:local' {{item}} &&
+      touch ~/.node_properties_{{ item }}
+  args:
+    creates: ~/.node_properties_{{ item }}
+  loop: "{{ groups.controller }}"
+
+- name: set role properties on computes
+  shell: |
+    . ~/stackrc
+    openstack baremetal node set \
+      --property capabilities='profile:compute,boot_option:local' {{item}} &&
+      touch ~/.node_properties_{{ item }}
+  args:
+    creates: ~/.node_properties_{{ item }}
+  loop: "{{ groups.compute }}"
+
+- name: get configured profiles
+  shell: |
+    . ~/stackrc
+    openstack overcloud profiles list
+  changed_when: false
+  register: profiles
+
+- name: show configured profiles
+  debug:
+    var: profiles.stdout_lines
+
+- name: write node-info.yaml
+  template:
+    src: node-info.j2.yaml
+    dest: ~/templates/node-info.yaml

@@ -1,0 +1,4 @@
+---
+resource_registry:
+  OS::TripleO::Controller::Net::SoftwareConfig: network-controller.yaml
+  OS::TripleO::Compute::Net::SoftwareConfig: network-compute.yaml

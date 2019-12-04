@@ -1,0 +1,13 @@
+---
+# https://access.redhat.com/solutions/4073061
+- name: download updated guestfs appliance
+  get_url:
+    url: http://download.libguestfs.org/binaries/appliance/appliance-1.40.1.tar.xz
+    dest: "{{ osp_demo_workdir }}/appliance.tar.xz"
+
+- name: extract updated guestfs appliance
+  command: >-
+    tar -C "{{ osp_demo_workdir }}" -xf "{{ osp_demo_workdir }}/appliance.tar.xz"
+  args:
+    warn: false
+    creates: "{{ osp_demo_workdir }}/appliance"

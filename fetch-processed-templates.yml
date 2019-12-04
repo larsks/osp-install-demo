@@ -1,0 +1,25 @@
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tasks:
+    - name: process templates
+      command: >-
+        ./tools/process-templates.py -n ~/network_data.yaml
+        -o ~/tripleo-heat-templates-processed
+      args:
+        chdir: /usr/share/openstack-tripleo-heat-templates
+        creates: ~/tripleo-heat-templates-processed
+
+    - name: archive processed templates
+      command: >-
+        tar -C ~ -cf ~/tripleo-heat-templates-processed.tar.gz
+        tripleo-heat-templates-processed
+      args:
+        warn: false
+        creates: ~/tripleo-heat-templates-processed.tar.gz
+
+    - name: fetch processed templates
+      fetch:
+        src: ~/tripleo-heat-templates-processed.tar.gz
+        dest: ./fetched
