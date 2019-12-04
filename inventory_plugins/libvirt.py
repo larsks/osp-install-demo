@@ -6,8 +6,11 @@ __metaclass__ = type
 
 import libvirt
 import logging
+import lxml
 import netaddr
 import os
+
+from collections import namedtuple
 
 from ansible.plugins.inventory import (
     BaseInventoryPlugin, Constructable, Cacheable
@@ -50,6 +53,11 @@ DOCUMENTATION = '''
         mechanisms:
             description: >-
                 what mechanism to use to get address of libvirt guests.
+            required: false
+        include_inactive:
+            description: >-
+                set to true if you want inactive hosts included in
+                the inventory.
             required: false
 '''
 
@@ -146,20 +154,23 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         strict = self.get_option('strict')
 
-        for dom in self._lv.listAllDomains(
-                flags=libvirt.VIR_CONNECT_LIST_DOMAINS_RUNNING):
-
+        for dom in self._lv.listAllDomains():
             host = dom.name()
             LOG.info('inspecting %s', host)
 
-            address = self._lookup_dom_address(host, dom)
-
-            if address is None:
-                LOG.error('failed to find address for %s', host)
+            if not self.get_option('include_inactive') and \
+                    dom.state() != libvirt.VIR_DOMAIN_RUNNING:
+                LOG.info('skipping %s (not running)', host)
+                continue
 
             self.inventory.add_host(host)
-            self.inventory.set_variable(host, 'ansible_host', address)
             self.inventory.add_child('libvirt', host)
+
+            address = self._lookup_dom_address(host, dom)
+            if address is None:
+                LOG.warning('failed to find address for %s', host)
+            else:
+                self.inventory.set_variable(host, 'ansible_host', address)
 
             self._set_libvirt_vars(host, dom)
 
@@ -185,3 +196,16 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                                            hostvars,
                                            host,
                                            strict=strict)
+
+
+libvirt_error = namedtuple('libvirt_error', [
+    'code', 'domain', 'message', 'level', 's1', 's2', 's3', 'i1', 'i2'
+])
+
+
+def libvirt_error_handler(ctx, err):
+    err = libvirt_error(*err)
+    LOG.info('libvirt: %s', err.message)
+
+
+libvirt.registerErrorHandler(libvirt_error_handler, None)
