@@ -11,6 +11,7 @@ deploy_args=(
 	-e templates/inject-trust-anchor-hiera.yaml
 	-e $TEMPLATES/environments/network-isolation.yaml
 	-e $TEMPLATES/environments/network-environment.yaml
+	-e $TEMPLATES/environments/docker-ha.yaml
 	-e templates/custom-networks.yaml
 	-e templates/extraconfig.yaml
 )
@@ -18,5 +19,6 @@ deploy_args=(
 openstack overcloud deploy \
 	--templates $TEMPLATES \
 	--libvirt-type kvm \
+	--ntp-server 0.rhel.pool.ntp.org,1.rhel.pool.ntp.org \
 	"${deploy_args[@]}" \
 	"$@"
