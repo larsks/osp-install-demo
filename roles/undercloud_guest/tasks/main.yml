@@ -15,8 +15,9 @@
     -n {{ undercloud_name }}
     --cpu host-passthrough
     --vcpus {{ undercloud_vcpus }}
+    --controller=scsi,model=virtio-scsi
     --memory memory={{ undercloud_ram }}
-    --disk path={{ undercloud_image_path }} --import
+    --disk path={{ undercloud_image_path }},bus=scsi --import
     --os-variant rhel7.7 --noautoconsole
     -w network=default
     -w network=openstack,virtualport_type=openvswitch,portgroup=internal

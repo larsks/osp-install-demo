@@ -1,9 +1,10 @@
 ---
-- name: resize vda1
+# XXX: we ought to be able to dynamically determine the appropriate device
+- name: resize sda1
   command: >-
-    growpart /dev/vda 1
+    growpart /dev/sda 1
   vars:
-    part: "{{ ansible_devices.vda.partitions.vda1 }}"
+    part: "{{ ansible_devices.sda.partitions.sda1 }}"
   when: (part.sectors|int * part.sectorsize|int) / (1024*1024) < 20000
   register: part_resize
 
