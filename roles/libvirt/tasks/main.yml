@@ -10,6 +10,12 @@
     state: started
     enabled: true
 
+- name: activate virtualbmc service
+  service:
+    name: virtualbmc
+    state: started
+    enabled: true
+
 - name: check if default pool is available
   command: >-
     virsh pool-info default

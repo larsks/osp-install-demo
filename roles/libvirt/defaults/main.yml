@@ -5,5 +5,9 @@ libvirt_packages:
   - libvirt-daemon-config-network
   - virt-install
   - libguestfs-tools-c
+  - python2-virtualbmc
+
+  # This is a bug in the delorean python2-virtualbmc package
+  - python-configparser
 
 libvirt_default_pool_directory: /var/lib/libvirt/images
