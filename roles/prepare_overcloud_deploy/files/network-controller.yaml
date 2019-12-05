@@ -266,6 +266,16 @@ resources:
                     - - default: true
                         next_hop:
                           get_param: ExternalInterfaceDefaultRoute
+
+              # for floating ips
+              - type: ovs_bridge
+                name: br-ex
+                use_dhcp: false
+                mtu: 1500
+                members:
+                  - type: interface
+                    mtu: 1500
+                    name: eth3
 outputs:
   OS::stack_id:
     description: The OsNetConfigImpl resource.

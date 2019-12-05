@@ -13,7 +13,7 @@ deploy_args=(
 	-e $TEMPLATES/environments/network-environment.yaml
 	-e $TEMPLATES/environments/docker-ha.yaml
 	-e templates/custom-networks.yaml
-	-e templates/extraconfig.yaml
+	-e templates/deploy.yaml
 )
 
 openstack overcloud deploy \

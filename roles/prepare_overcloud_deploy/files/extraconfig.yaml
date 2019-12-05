@@ -1,8 +1,0 @@
----
-parameter_defaults:
-  ExtraConfig:
-      tripleo::firewall::firewall_rules:
-        '050 allow ssh from virthost':
-          port: 22
-          proto: tcp
-          action: accept
