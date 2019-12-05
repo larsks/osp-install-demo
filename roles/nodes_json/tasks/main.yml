@@ -1,6 +1,7 @@
 ---
 - name: generate nodes.json
   script: libvirt2nodes.py -o ~/nodes.json
+  changed_when: false
   environment:
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
   args:
@@ -10,5 +11,3 @@
   command: cat ~/nodes.json
   changed_when: false
   register: nodes_json
-
-
