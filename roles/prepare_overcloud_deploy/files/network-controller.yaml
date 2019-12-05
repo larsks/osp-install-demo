@@ -248,9 +248,23 @@ resources:
                     get_param: TenantIpSubnet
                 routes:
                   get_param: TenantInterfaceRoutes
-
+                  #
+              # storage
               - type: interface
                 name: nic3
+                mtu:
+                  get_param: StorageMtu
+                use_dhcp: false
+                addresses:
+                  - ip_netmask:
+                      get_param: StorageIpSubnet
+                  - ip_netmask:
+                      get_param: StorageMgmtIpSubnet
+                routes:
+                  get_param: StorageInterfaceRoutes
+
+              - type: interface
+                name: nic4
                 mtu:
                   get_param: ExternalMtu
                 use_dhcp: false
@@ -275,7 +289,7 @@ resources:
                 members:
                   - type: interface
                     mtu: 1500
-                    name: eth3
+                    name: nic5
 outputs:
   OS::stack_id:
     description: The OsNetConfigImpl resource.

@@ -13,5 +13,6 @@
 - eth0.101: internal api (vlan 101)
 - eth0.102: tenant private (vlan 102)
 - eth1: management/ipmi
-- eth2: external network (vlan 200)
-- eth3: floating ip (vlan 201)
+- eth2: storage (vlan 103)
+- eth3: external network (vlan 200)
+- eth4: floating ip (vlan 201)

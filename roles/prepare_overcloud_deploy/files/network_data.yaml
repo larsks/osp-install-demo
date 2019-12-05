@@ -87,7 +87,7 @@
 # NIC2, Control Plane is always NIC1.
 
 - name: Storage
-  enabled: false
+  enabled: true
   vip: true
   vlan: 30
   name_lower: storage
@@ -97,7 +97,7 @@
   ipv6_allocation_pools: [{'start': 'fd00:fd00:fd00:3000::10', 'end': 'fd00:fd00:fd00:3000:ffff:ffff:ffff:fffe'}]
   mtu: 1500
 - name: StorageMgmt
-  enabled: false
+  enabled: true
   name_lower: storage_mgmt
   vip: true
   vlan: 40

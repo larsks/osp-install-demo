@@ -32,6 +32,7 @@ overcloud_hosts:
     networks:
       - network=openstack,portgroup=internal,boot_order=1
       - network=default
+      - network=openstack,portgroup=storage
       - network=openstack,portgroup=external
       - network=openstack,portgroup=floating
   compute:
@@ -43,3 +44,4 @@ overcloud_hosts:
     networks:
       - network=openstack,portgroup=internal,boot_order=1
       - network=default
+      - network=openstack,portgroup=storage
