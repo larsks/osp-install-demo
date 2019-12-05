@@ -1,8 +1,4 @@
 ---
-resource_registry:
-  OS::TripleO::Network::Storage: OS::Heat::None
-  OS::TripleO::Network::StorageMgmt: OS::Heat::None
-
 parameter_defaults:
   ExtraConfig:
     tripleo::firewall::firewall_rules:
