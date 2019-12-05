@@ -258,8 +258,6 @@ resources:
                 addresses:
                   - ip_netmask:
                       get_param: StorageIpSubnet
-                  - ip_netmask:
-                      get_param: StorageMgmtIpSubnet
                 routes:
                   get_param: StorageInterfaceRoutes
 outputs:
