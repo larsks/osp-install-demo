@@ -52,6 +52,7 @@
         virt-install
         -r {{ item.item.1.ram }}
         --vcpu {{ item.item.1.vcpus }}
+        --cpu host-passthrough
         --controller=scsi,model=virtio-scsi
         --disk vol=default/{{ item.item.1.name }}-{{ item.item.0 }}.qcow2,bus=scsi
         -n {{ item.item.1.name }}-{{ item.item.0 }}
