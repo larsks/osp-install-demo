@@ -19,7 +19,7 @@
     --disk path={{ undercloud_image_path }} --import
     --os-variant rhel7.7 --noautoconsole
     -w network=default
-    -w bridge={{ openstack_switch }},virtualport_type=openvswitch,portgroup=internal
+    -w network=openstack,virtualport_type=openvswitch,portgroup=internal
   environment:
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
 
