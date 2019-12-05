@@ -4,6 +4,22 @@
     name: stack
     create_home: true
 
+- name: create stack user ssh directory
+  file:
+    path: ~stack/.ssh
+    state: directory
+    owner: stack
+    group: stack
+    mode: "0700"
+
+- name: create stack user ssh config
+  template:
+    src: ssh_config
+    dest: ~stack/.ssh/config
+    owner: stack
+    group: stack
+    mode: "0600"
+
 - name: set authorized keys for stack user
   authorized_key:
     user: stack
