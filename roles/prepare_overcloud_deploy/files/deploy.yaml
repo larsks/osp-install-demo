@@ -1,4 +1,8 @@
 ---
+resource_registry:
+  OS::TripleO::Network::Storage: OS::Heat::None
+  OS::TripleO::Network::StorageMgmt: OS::Heat::None
+
 parameter_defaults:
   ExtraConfig:
     tripleo::firewall::firewall_rules:
@@ -8,4 +12,4 @@ parameter_defaults:
         action: accept
 
   # allow redeploy to update network configuration
-  NetworkDeploymentActions: ['CREATE', 'UPDATE']
+  #NetworkDeploymentActions: ['CREATE', 'UPDATE']
