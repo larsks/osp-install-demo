@@ -13,6 +13,24 @@
   command: >-
     ovs-vsctl add-br {{ openstack_switch }}
 
+- name: create extgw ifcfg file
+  template:
+    src: ifcfg.j2
+    dest: /etc/sysconfig/network-scripts/ifcfg-extgw
+  vars:
+    device: extgw
+    address: "{{ external_gw_address }}"
+    type: OVSIntPort
+    devicetype: ovs
+    ovs_options: tag=200
+    ovs_bridge: "{{ openstack_switch }}"
+  register: extgw_ifcfg
+
+- name: bring up extgw interface
+  command: >-
+    ifup extgw
+  when: extgw_ifcfg is changed
+
 - name: check if openstack network exists
   command: >-
     virsh net-info openstack

@@ -1,0 +1,14 @@
+DEVICE={{ device }}
+TYPE={{ type }}
+{% if devicetype|default(false) -%}
+DEVICETYPE={{ devicetype }}
+{% endif %}
+ONBOOT={{ onboot|default('yes') }}
+IPADDR={{ address|ipaddr('address') }}
+PREFIX={{ address|ipaddr('prefix') }}
+{% if ovs_bridge|default(false) -%}
+OVS_BRIDGE={{ openstack_switch }}
+{% endif %}
+{% if ovs_options|default(false) -%}
+OVS_OPTIONS="{{ ovs_options }}"
+{% endif %}

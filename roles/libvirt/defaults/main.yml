@@ -11,3 +11,5 @@ libvirt_packages:
   - python-configparser
 
 libvirt_default_pool_directory: /var/lib/libvirt/images
+
+external_gw_address: 10.0.0.1/24
