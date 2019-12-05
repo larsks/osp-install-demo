@@ -9,9 +9,9 @@
 
 ## Network configuration
 
-- eth0: provisioning network
-- eth0.101: internal api
-- eth0.102: tenant private
+- eth0: provisioning network (vlan 100)
+- eth0.101: internal api (vlan 101)
+- eth0.102: tenant private (vlan 102)
 - eth1: management/ipmi
-- eth2: external network
-- eth3: floating ip
+- eth2: external network (vlan 200)
+- eth3: floating ip (vlan 201)
