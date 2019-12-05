@@ -31,6 +31,18 @@
     ifup extgw
   when: extgw_ifcfg is changed
 
+- name: ensure masquerade rule exists
+  shell: |
+    gwdev=$(ip route | awk '$1 == "default" {print $5}')
+    rule="
+      -s {{ external_gw_address|ipaddr('network/prefix') }}
+      -o $gwdev
+      -j MASQUERADE
+    "
+    if ! iptables -t nat -C POSTROUTING $rule; then
+      iptables -t nat -A POSTROUTING $rule
+    fi
+
 - name: check if openstack network exists
   command: >-
     virsh net-info openstack
