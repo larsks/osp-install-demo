@@ -1,3 +1,4 @@
 Host *
   UserKnownHostsFile /dev/null
   StrictHostkeyChecking no
+  User heat-admin
