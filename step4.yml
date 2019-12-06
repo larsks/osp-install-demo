@@ -1,5 +1,6 @@
 - hosts: virthost
   gather_facts: false
+  tags: [nodes]
   tasks:
     - name: generate nodes.json
       include_role:
@@ -7,6 +8,7 @@
 
 - hosts: undercloud
   gather_facts: false
+  tags: [nodes]
   become: true
   become_user: stack
   tasks:
@@ -17,6 +19,16 @@
 
     - include_role:
         name: register_baremetal_nodes
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tasks:
+    - name: ensure templates directory exists
+      file:
+        path: ~/templates
+        state: directory
 
     - include_role:
         name: inject_ca_trust
