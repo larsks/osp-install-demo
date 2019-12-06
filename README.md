@@ -7,6 +7,12 @@
 - Run `step4.yml`
 - Log into the undercloud and run `sh overcloud-deploy.sh`
 
+You will need to provide the following variables:
+
+- `redhat_username` -- your customer portal username
+- `redhat_password` -- your customer portal password
+- `redhat_pool_ids` -- a list of pool to which your system should be attached
+
 ## Network configuration
 
 - eth0: provisioning network (vlan 100)
