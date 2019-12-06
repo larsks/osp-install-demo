@@ -45,3 +45,25 @@ overcloud_hosts:
       - network=openstack,portgroup=internal,boot_order=1
       - network=default
       - network=openstack,portgroup=storage
+
+os_flavors:
+  - name: m1.tiny
+    state: present
+    ram: 513
+    vcpus: 1
+    disk: 10
+
+os_projects:
+  - demo
+
+os_users:
+  - name: demo
+    password: demo
+    default_project: demo
+
+os_images:
+  - name: centos-7-x86_64
+    format: qcow2
+    url: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
+    properties:
+      distro: centos

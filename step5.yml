@@ -1,0 +1,103 @@
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tasks:
+    - name: create clouds.yaml
+      shell: |
+        . ~/overcloudrc
+        mkdir -p ~/.config/openstack
+        cat > ~/.config/openstack/clouds.yaml <<EOF
+        ---
+        clouds:
+          overcloud:
+            auth:
+              username: admin
+              project_name: admin
+              password: "$OS_PASSWORD"
+              auth_url: "$OS_AUTH_URL"
+              user_domain_name: Default
+              project_domain_name: Default
+            region: "$OS_REGION_NAME"
+            identity_api_version: "$OS_IDENTITY_API_VERSION"
+            interface: internal
+        EOF
+
+    - name: get stack user home directory
+      shell: "echo $HOME"
+      register: stack_home
+      changed_when: false
+
+    - set_fact:
+        stack_home: "{{ stack_home.stdout }}"
+
+    - name: create flavors
+      os_nova_flavor: "{{ item|combine({'cloud': 'overcloud'}) }}"
+      loop: "{{ os_flavors }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: create image download directory
+      file:
+        path: "{{ stack_home }}/demo_images"
+        state: directory
+
+    - name: download images
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ stack_home }}/demo_images/{{ item.name }}.{{ item.format }}"
+      loop: "{{ os_images }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: upload images to glance
+      os_image:
+        cloud: overcloud
+        name: "{{ item.name }}"
+        container_format: bare
+        disk_format: "{{ item.format }}"
+        filename: "{{ stack_home }}/demo_images/{{ item.name }}.{{ item.format }}"
+        is_public: true
+        properties: "{{ item.properties|default(omit) }}"
+      loop: "{{ os_images }}"
+
+    - name: create projects
+      os_project:
+        cloud: overcloud
+        name: "{{ item }}"
+        domain: default
+      loop: "{{ os_projects }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: create users
+      os_user: "{{ item|combine({'cloud': 'overcloud', 'domain': 'default'}) }}"
+      loop: "{{ os_users }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: assign user roles
+      os_user_role:
+        cloud: overcloud
+        user: "{{ item.name }}"
+        project: "{{ item.default_project }}"
+        role: member
+      loop: "{{ os_users }}"
+      loop_control:
+        label: "{{ item.default_project }}:{{ item.name }}"
+
+#   - name: create external network
+#     os_network:
+#       cloud: overcloud
+#       name: external
+#       external: true
+#       provider_network_type: flat
+#       provider_physical_network: datacentre
+#
+#   - name: create external network subnet
+#     os_subnet:
+#       cloud: overcloud
+#       network_name: external
+#       name: external-subnet
+#       cidr: 10.0.0.0/24
+#       enable_dhcp: false
