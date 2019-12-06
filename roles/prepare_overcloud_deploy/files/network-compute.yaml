@@ -260,6 +260,16 @@ resources:
                       get_param: StorageIpSubnet
                 routes:
                   get_param: StorageInterfaceRoutes
+
+              # for floating ips
+              - type: ovs_bridge
+                name: br-ex
+                use_dhcp: false
+                mtu: 1500
+                members:
+                  - type: interface
+                    mtu: 1500
+                    name: nic5
 outputs:
   OS::stack_id:
     description: The OsNetConfigImpl resource.
