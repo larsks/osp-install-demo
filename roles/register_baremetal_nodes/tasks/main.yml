@@ -55,3 +55,12 @@
   template:
     src: node-info.j2.yaml
     dest: ~/templates/node-info.yaml
+
+- name: generate fencing configuration
+  shell: |
+    . ~/stackrc
+    openstack overcloud generate fencing \
+      --ipmi-lanplus --ipmi-level administrator \
+      --output ~/templates/fencing.yaml ~/nodes.json
+  args:
+    creates: ~/templates/fencing.yaml
