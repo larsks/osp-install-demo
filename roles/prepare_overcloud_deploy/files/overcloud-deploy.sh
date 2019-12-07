@@ -18,9 +18,10 @@ deploy_args=(
 	# Enable HA services (pacemaker)
 	-e $TEMPLATES/environments/docker-ha.yaml
 
-	# Enable network isolation (different networks for
-	# different purposes) and describe the network
-	# configuration of the overcloud nodes.
+	# Enable DVR, network isolation (different networks for different
+	# purposes) and describe the network configuration of the overcloud
+	# nodes.
+	-e $TEMPLATES/environments/services/neutron-ovn-dvr-ha.yaml
 	-e $TEMPLATES/environments/network-isolation.yaml
 	-e $TEMPLATES/environments/network-environment.yaml
 	-e templates/custom-networks.yaml
