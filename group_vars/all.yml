@@ -45,6 +45,8 @@ overcloud_hosts:
       - network=openstack,portgroup=internal,boot_order=1
       - network=default
       - network=openstack,portgroup=storage
+      - network=openstack,portgroup=external
+      - network=openstack,portgroup=floating
 
 os_flavors:
   - name: m1.tiny
