@@ -33,7 +33,7 @@ deploy_args=(
 	-e templates/deploy.yaml
 )
 
-openstack overcloud deploy \
+time openstack overcloud deploy \
 	--templates $TEMPLATES \
 	--libvirt-type kvm \
 	--ntp-server 0.rhel.pool.ntp.org,1.rhel.pool.ntp.org \
