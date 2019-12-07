@@ -11,6 +11,5 @@ compose:
   ansible_ssh_common_args: '"-o ProxyJump=root@neu-19-4-stackcomp.kzn.moc"'
 
 groups:
-  undercloud: inventory_hostname.startswith('undercloud')
   controller: inventory_hostname.startswith('controller')
   compute: inventory_hostname.startswith('compute')

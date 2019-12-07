@@ -1,8 +1,6 @@
 ---
 libvirt_uri: "qemu:///system"
 
-undercloud_name: undercloud-rhel8
-
 rhel_image:
   path: /var/lib/libvirt/images/rhel-8.1-x86_64-kvm.qcow2
   format: qcow2
