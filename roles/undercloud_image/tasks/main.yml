@@ -1,4 +1,14 @@
 ---
+- name: verify that source image exists
+  stat:
+    path: "{{ rhel_image.path }}"
+  register: rhel_image_check
+
+- name: fail if rhel image is missing
+  fail:
+    msg: "rhel image ({{ rhel_image.path }}) is missing"
+  when: not rhel_image_check.stat.exists|default(false)
+
 - name: set undercloud_image_path fact
   set_fact:
     undercloud_image_path: "{{ osp_demo_workdir }}/undercloud.qcow2"
