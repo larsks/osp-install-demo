@@ -3,25 +3,63 @@
   become: true
   become_user: stack
   tasks:
-    - name: create clouds.yaml
+    - name: read credentials
+      tags: [credentials]
       shell: |
-        . ~/overcloudrc
-        mkdir -p ~/.config/openstack
-        cat > ~/.config/openstack/clouds.yaml <<EOF
-        ---
-        clouds:
-          overcloud:
-            auth:
-              username: admin
-              project_name: admin
-              password: "$OS_PASSWORD"
-              auth_url: "$OS_AUTH_URL"
-              user_domain_name: Default
-              project_domain_name: Default
-            region: "$OS_REGION_NAME"
-            identity_api_version: "$OS_IDENTITY_API_VERSION"
-            interface: internal
+        . ~/{{ item }}
+
+        cat <<EOF
+        {
+          "os_password": "$OS_PASSWORD",
+          "os_username": "$OS_USERNAME",
+          "os_region_name": "$OS_REGION_NAME",
+          "os_auth_url": "$OS_AUTH_URL",
+          "os_project_name": "$OS_PROJECT_NAME",
+          "os_cloudname": "$OS_CLOUDNAME",
+          "os_identity_api_version": "$OS_IDENTITY_API_VERSION"
+        }
         EOF
+      register: credentials
+      loop:
+        - stackrc
+        - overcloudrc
+
+    - name: create openstack config directory
+      tags: [credentials]
+      file:
+        path: ~/.config/openstack
+        state: directory
+
+    - name: initialize clouds.yaml
+      tags: [credentials]
+      lineinfile:
+        path: ~/.config/openstack/clouds.yaml
+        create: true
+        line: "clouds:"
+        insertbefore: BOF
+
+    - name: add undercloud and overcloud to clouds.yaml
+      tags: [credentials]
+      blockinfile:
+        path: ~/.config/openstack/clouds.yaml
+        mode: "0700"
+        marker: "# {mark} CLOUD {{ creds.os_cloudname }}"
+        block: |
+          # Dummy line to make Ansible happy
+            {{ creds.os_cloudname }}:
+              auth:
+                username: "{{ creds.os_username }}"
+                project_name: "{{ creds.os_project_name }}"
+                password: "{{ creds.os_password }}"
+                auth_url: "{{ creds.os_auth_url }}"
+                user_domain_name: Default
+                project_domain_name: Default
+              region: "{{ creds.os_region_name }}"
+              identity_api_version: "{{ creds.os_identity_api_version }}"
+              interface: internal
+      vars:
+        creds: "{{ item.stdout|from_json }}"
+      loop: "{{ credentials.results }}"
 
     - name: get stack user home directory
       shell: "echo $HOME"
@@ -75,6 +113,36 @@
       loop: "{{ os_users }}"
       loop_control:
         label: "{{ item.name }}"
+
+    - name: read overcloud auth url
+      shell: |
+        . ~/overcloudrc
+        echo "$OS_AUTH_URL"
+        echo "$OS_REGION_NAME"
+        echo "$OS_IDENTITY_API_VERSION"
+      register: auth_url
+
+    - name: add users to clouds.yaml
+      blockinfile:
+        path: ~/.config/openstack/clouds.yaml
+        mode: "0700"
+        marker: "# {mark} USER {{ user.name }}"
+        block: |
+          # Dummy line to make ansible happy
+            overcloud-{{ user.name }}:
+              auth:
+                username: "{{ user.name }}"
+                project_name: "{{ user.default_project }}"
+                password: "{{ user.password }}"
+                auth_url: "{{ auth_url.stdout_lines[0] }}"
+                user_domain_name: Default
+                project_domain_name: Default
+              region: "{{ auth_url.stdout_lines[1] }}"
+              identity_api_version: "{{ auth_url.stdout_lines[2] }}"
+              interface: internal
+      loop: "{{ os_users }}"
+      loop_control:
+        loop_var: user
 
     - name: assign user roles
       os_user_role:
