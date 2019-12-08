@@ -1,0 +1,11 @@
+---
+- name: install delorean repos
+  get_url:
+    url: "{{ item.url }}"
+    dest: "/etc/yum.repos.d/{{ item.name }}.repo"
+  loop: "{{ delorean_repos }}"
+
+- name: disable delorean repos
+  command: >-
+    yum-config-manager --disable "{{ ' '.join(item.repos) }}"
+  loop: "{{ delorean_repos }}"

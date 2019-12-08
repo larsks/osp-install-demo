@@ -1,0 +1,15 @@
+---
+delorean_repos:
+  - name: delorean
+    repos:
+      - delorean
+    url: https://trunk.rdoproject.org/centos7-train/current/delorean.repo
+  - name: delorean-deps
+    repos:
+      - delorean-train-testing
+      - delorean-train-build-deps
+      - rdo-qemu-ev
+    url: https://trunk.rdoproject.org/centos7-train/delorean-deps.repo
+
+
+delorean_disable_repos: true
