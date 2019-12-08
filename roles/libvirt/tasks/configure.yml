@@ -13,35 +13,49 @@
   command: >-
     ovs-vsctl add-br {{ openstack_switch }}
 
-- name: create extgw ifcfg file
+- name: create interface config files
   template:
     src: ifcfg.j2
-    dest: /etc/sysconfig/network-scripts/ifcfg-extgw
+    dest: "/etc/sysconfig/network-scripts/ifcfg-{{ item.name }}"
   vars:
-    device: extgw
-    address: "{{ external_gw_address }}"
+    device: "{{ item.name }}"
+    address: "{{ item.cidr|nthhost(1) }}"
+    prefix: "{{ item.cidr|ipaddr('prefix') }}"
     type: OVSIntPort
     devicetype: ovs
-    ovs_options: tag=200
+    ovs_options: "tag={{ item.tag }}"
     ovs_bridge: "{{ openstack_switch }}"
-  register: extgw_ifcfg
+  register: interface_config
+  loop:
+    - name: extgw
+      tag: 200
+      cidr: "{{ external_network_cidr }}"
+    - name: floatgw
+      tag: 201
+      cidr: "{{ floating_network_cidr }}"
 
-- name: bring up extgw interface
-  command: >-
-    ifup extgw
-  when: extgw_ifcfg is changed
+- name: bring up interfaces
+  shell: |
+    ifdown {{ item.item.name }}
+    sleep 1
+    ifup {{ item.item.name }}
+  when: item is changed
+  loop: "{{ interface_config.results }}"
 
-- name: ensure masquerade rule exists
+- name: ensure masquerade rules exist
   shell: |
     gwdev=$(ip route | awk '$1 == "default" {print $5}')
     rule="
-      -s {{ external_gw_address|ipaddr('network/prefix') }}
+      -s {{ item }}
       -o $gwdev
       -j MASQUERADE
     "
     if ! iptables -t nat -C POSTROUTING $rule; then
       iptables -t nat -A POSTROUTING $rule
     fi
+  loop:
+    - "{{ external_network_cidr }}"
+    - "{{ floating_network_cidr }}"
 
 - name: check if openstack network exists
   command: >-

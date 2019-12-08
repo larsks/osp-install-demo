@@ -67,3 +67,6 @@ os_images:
     url: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
     properties:
       distro: centos
+
+external_network_cidr: 10.0.0.0/24
+floating_network_cidr: 10.1.0.0/24
