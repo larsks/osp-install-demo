@@ -1,14 +1,17 @@
 ---
 - name: get podman version
   command: >-
-    rpm -q podman --qf '%{VERSION}-%{RELEASE}\n'
+    rpm -q podman --qf '%{VERSION}\n%{RELEASE}\n'
   args:
     warn: false
   failed_when: false
   register: podman_version
 
 - name: install appropriate version of podman
-  when: podman_version.rc != 0 or podman_version.stdout.startswith('1.4.2-5')
+  when: >-
+    podman_version.rc != 0 or
+    (podman_version.stdout_lines[0] == '1.4.2' and
+    podman_version.stdout_lines[1]|int <= 5)
   tags: [bugs]
   block:
     - name: copy packages to target
