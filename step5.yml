@@ -154,18 +154,19 @@
       loop_control:
         label: "{{ item.default_project }}:{{ item.name }}"
 
-#   - name: create external network
-#     os_network:
-#       cloud: overcloud
-#       name: external
-#       external: true
-#       provider_network_type: flat
-#       provider_physical_network: datacentre
-#
-#   - name: create external network subnet
-#     os_subnet:
-#       cloud: overcloud
-#       network_name: external
-#       name: external-subnet
-#       cidr: 10.0.0.0/24
-#       enable_dhcp: false
+    - name: create public network
+      tags: [network]
+      os_network:
+        cloud: overcloud
+        name: public
+        external: true
+        provider_network_type: flat
+        provider_physical_network: datacentre
+
+    - name: create public network subnet
+      os_subnet:
+        cloud: overcloud
+        network_name: public
+        name: public-subnet
+        cidr: 10.0.0.0/24
+        enable_dhcp: false
