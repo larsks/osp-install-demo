@@ -1,10 +1,55 @@
 - hosts: undercloud
   gather_facts: false
+  tags: [venv]
+  tasks:
+    - name: ensure python virtualenv command is installed
+      package:
+        name: python3-virtualenv
+        state: present
+
+- hosts: undercloud
+  gather_facts: false
   become: true
   become_user: stack
+  tags: [venv]
+  tasks:
+    - name: create virtualenv
+      command: >-
+        virtualenv ~/openstackenv
+      args:
+        creates: ~/openstackenv
+
+    - name: install updated version of python-openstacksdk
+      pip:
+        virtualenv: ~/openstackenv
+        name: python-openstacksdk
+        state: latest
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tags: [always]
+  tasks:
+    - name: set new python interpreter path
+      set_fact:
+        ansible_python_interpreter: /home/stack/openstackenv/bin/python
+
+    - name: get stack user home directory
+      shell: "echo $HOME"
+      register: stack_home
+      changed_when: false
+
+    - set_fact:
+        stack_home: "{{ stack_home.stdout }}"
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tags: [credentials]
   tasks:
     - name: read credentials
-      tags: [credentials]
       shell: |
         . ~/{{ item }}
 
@@ -25,13 +70,11 @@
         - overcloudrc
 
     - name: create openstack config directory
-      tags: [credentials]
       file:
         path: ~/.config/openstack
         state: directory
 
     - name: initialize clouds.yaml
-      tags: [credentials]
       lineinfile:
         path: ~/.config/openstack/clouds.yaml
         create: true
@@ -39,7 +82,6 @@
         insertbefore: BOF
 
     - name: add undercloud and overcloud to clouds.yaml
-      tags: [credentials]
       blockinfile:
         path: ~/.config/openstack/clouds.yaml
         mode: "0700"
@@ -61,44 +103,6 @@
         creds: "{{ item.stdout|from_json }}"
       loop: "{{ credentials.results }}"
 
-    - name: get stack user home directory
-      shell: "echo $HOME"
-      register: stack_home
-      changed_when: false
-
-    - set_fact:
-        stack_home: "{{ stack_home.stdout }}"
-
-    - name: create flavors
-      os_nova_flavor: "{{ item|combine({'cloud': 'overcloud'}) }}"
-      loop: "{{ os_flavors }}"
-      loop_control:
-        label: "{{ item.name }}"
-
-    - name: create image download directory
-      file:
-        path: "{{ stack_home }}/demo_images"
-        state: directory
-
-    - name: download images
-      get_url:
-        url: "{{ item.url }}"
-        dest: "{{ stack_home }}/demo_images/{{ item.name }}.{{ item.format }}"
-      loop: "{{ os_images }}"
-      loop_control:
-        label: "{{ item.name }}"
-
-    - name: upload images to glance
-      os_image:
-        cloud: overcloud
-        name: "{{ item.name }}"
-        container_format: bare
-        disk_format: "{{ item.format }}"
-        filename: "{{ stack_home }}/demo_images/{{ item.name }}.{{ item.format }}"
-        is_public: true
-        properties: "{{ item.properties|default(omit) }}"
-      loop: "{{ os_images }}"
-
     - name: create projects
       os_project:
         cloud: overcloud
@@ -113,6 +117,16 @@
       loop: "{{ os_users }}"
       loop_control:
         label: "{{ item.name }}"
+
+    - name: assign user roles
+      os_user_role:
+        cloud: overcloud
+        user: "{{ item.name }}"
+        project: "{{ item.default_project }}"
+        role: member
+      loop: "{{ os_users }}"
+      loop_control:
+        label: "{{ item.default_project }}:{{ item.name }}"
 
     - name: read overcloud auth url
       shell: |
@@ -144,16 +158,54 @@
       loop_control:
         loop_var: user
 
-    - name: assign user roles
-      os_user_role:
-        cloud: overcloud
-        user: "{{ item.name }}"
-        project: "{{ item.default_project }}"
-        role: member
-      loop: "{{ os_users }}"
-      loop_control:
-        label: "{{ item.default_project }}:{{ item.name }}"
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tags: [admin, images]
+  tasks:
+    - name: create image download directory
+      file:
+        path: "{{ stack_home }}/demo_images"
+        state: directory
 
+    - name: download images
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ stack_home }}/demo_images/{{ item.name }}.{{ item.format }}"
+      loop: "{{ os_images }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: upload images to glance
+      os_image:
+        cloud: overcloud
+        name: "{{ item.name }}"
+        container_format: bare
+        disk_format: "{{ item.format }}"
+        filename: "{{ stack_home }}/demo_images/{{ item.name }}.{{ item.format }}"
+        is_public: true
+        properties: "{{ item.properties|default(omit) }}"
+      loop: "{{ os_images }}"
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tags: [admin, compute]
+  tasks:
+    - name: create flavors
+      os_nova_flavor: "{{ item|combine({'cloud': 'overcloud'}) }}"
+      loop: "{{ os_flavors }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tags: [admin, network]
+  tasks:
     - name: create public network
       tags: [network]
       os_network:
@@ -168,5 +220,80 @@
         cloud: overcloud
         network_name: public
         name: public-subnet
-        cidr: 10.0.0.0/24
+        cidr: "{{ floating_network_cidr }}"
         enable_dhcp: false
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tags: [user]
+  vars:
+    networks:
+      - name: net0
+        subnets:
+          - name: net0-subnet0
+            cidr: 192.168.17.0/24
+            dns_nameservers:
+              - 8.8.8.8
+              - 8.8.4.4
+            allocation_pool_start: 192.168.17.10
+            allocation_pool_end: 192.168.17.200
+    routers:
+      - name: router0
+        subnets:
+          - net0-subnet0
+        external_gateway: public
+    security_groups:
+      - name: default
+        rules:
+          - protocol: tcp
+          - protocol: udp
+          - protocol: icmp
+  tasks:
+    - name: create networks
+      os_network:
+        cloud: overcloud-demo
+        name: "{{ item.name }}"
+      loop: "{{ networks }}"
+
+    - name: create subnets
+      os_subnet: >-
+        {{
+        item.1|combine({
+        'cloud': 'overcloud-demo',
+        'network_name': item.0.name
+        })
+        }}
+      loop: "{{ networks|subelements('subnets') }}"
+
+    - name: create routers
+      os_router:
+        cloud: overcloud-demo
+        name: "{{ item.name}}"
+        network: "{{ item.external_gateway }}"
+        interfaces: "{{ item.subnets }}"
+      loop: "{{ routers }}"
+
+    - name: create security groups
+      os_security_group:
+        cloud: overcloud-demo
+        name: "{{ item.name }}"
+      loop: "{{ security_groups }}"
+
+    - name: create security group rules
+      os_security_group_rule: >-
+        {{
+        item.1|combine({
+        'cloud': 'overcloud-demo',
+        'security_group': item.0.name
+        })
+        }}
+      loop: "{{ security_groups|subelements('rules') }}"
+
+    - name: create keypair
+      tags: [keypair]
+      os_keypair:
+        cloud: overcloud-demo
+        name: default
+        public_key_file: "{{ stack_home }}/.ssh/id_rsa.pub"
