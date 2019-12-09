@@ -171,6 +171,25 @@
 
 - hosts: undercloud
   gather_facts: false
+  tags: [hosts]
+  tasks:
+    - name: get hosts entries for overcloud
+      become: true
+      become_user: stack
+      command: >-
+        openstack --os-cloud undercloud stack output
+        show overcloud HostsEntry -f value -c output_value
+      changed_when: false
+      register: overcloud_hosts_entry
+
+    - name: write overcloud hosts to /etc/hosts
+      blockinfile:
+        path: /etc/hosts
+        block: |-
+          {{ overcloud_hosts_entry.stdout }}
+
+- hosts: undercloud
+  gather_facts: false
   become: true
   become_user: stack
   tags: [admin, images]
