@@ -1,3 +1,11 @@
+# If you want to build custom network configuration templates, you need to
+# start with the processed version of the templates in
+# /usr/share/openstack-tripleo-heat-templates. This playbook will process the
+# templates on the undercloud and then download  a tarball locally into the
+# `fetched` directive.
+#
+# (as described in https://red.ht/2LF7NSF)
+---
 - hosts: undercloud
   gather_facts: false
   become: true

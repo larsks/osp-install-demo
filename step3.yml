@@ -1,3 +1,5 @@
+# This playbook sets up the overcloud guests, and starts a
+# corresponding virtualbmc instance for each guest.
 ---
 - hosts: virthost
   gather_facts: false

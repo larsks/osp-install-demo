@@ -1,3 +1,5 @@
+# This playbooks runs after the undercloud is installed. It's primary
+# purpose is to upload the overcloud images into Glance.
 ---
 - hosts: undercloud
   tasks:
