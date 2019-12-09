@@ -1,3 +1,7 @@
+# Registers overcloud nodes with Undercloud Ironic, and uploads the
+# deploy script and associated templates. When this playbook is complete,
+# you can run the `openstack overcloud deploy` command.
+---
 - hosts: virthost
   gather_facts: false
   tags: [nodes]

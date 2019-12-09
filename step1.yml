@@ -13,6 +13,7 @@
         path: "{{ osp_demo_workdir }}"
         state: directory
 
+# Install and activate libvirt and openvswitch on your virtual host.
 - name: prepare virthost
   hosts: virthost
   tags: [virthost]
@@ -30,6 +31,7 @@
         name: libvirt
         tasks_from: configure.yml
 
+# Generate the undercloud disk image and boot the undercloud.
 - name: prepare undercloud guest
   tags: [create-undercloud]
   hosts: virthost
@@ -53,6 +55,9 @@
   tasks:
     - meta: refresh_inventory
 
+# Configure the undercloud, including registering it with 
+# subscription-manager. After this task is complete you can run the
+# `openstack undercloud install` command.
 - hosts: undercloud
   name: configure undercloud
   tags: [configure-undercloud]

@@ -7,6 +7,11 @@
         name: python3-virtualenv
         state: present
 
+# The following play is an ugly hack: we need a newer version of 
+# python-openstacksdk than is available in RHEL 8. It's simple enough
+# to install into a virtualenv, we we need a virtualenv *without*
+# --system-site-packages...in which we case we lose access to the selinux
+# module. So we symlink that in after creating the virtualenv.
 - hosts: undercloud
   gather_facts: false
   become: true
