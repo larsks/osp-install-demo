@@ -25,6 +25,17 @@
         name: python-openstacksdk
         state: latest
 
+    - name: symlink system selinux module into virtualenv
+      shell: |
+        selinux_module_path=$(python3 -c 'import selinux; import os; \
+          print(os.path.dirname(selinux.__file__))')
+        ln -sf $selinux_module_path ~/openstackenv/lib/python3.6/site-packages/
+
+        selinux_lib_path=$(python3 -c 'import _selinux; import os; \
+          print(_selinux.__file__)')
+        ln -sf $selinux_lib_path ~/openstackenv/lib/python3.6/site-packages/
+      register: linkit
+
 - hosts: undercloud
   gather_facts: false
   become: true
