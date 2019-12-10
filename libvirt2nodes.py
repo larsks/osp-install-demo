@@ -1,3 +1,9 @@
+#!/usr/bin/python
+
+'''This script generates a nodes.json suitable for use with the
+`openstack overcloud node import` command by interrogating libvirt and
+virtualbmc.'''
+
 import argparse
 import json
 import libvirt
@@ -11,13 +17,14 @@ class Libvirt:
         self.conn = libvirt.open(uri)
 
     def all_nodes(self):
-        domains = []
-        for dom in self.conn.listAllDomains():
-            domains.append(self.node(dom.name()))
+        '''Yield information for all discovered libvirt guests'''
 
-        return domains
+        for dom in self.conn.listAllDomains():
+            yield self.node(dom.name())
 
     def node(self, name):
+        '''Get libvirt and virtualbmc information for a single node'''
+
         dom = self.conn.lookupByName(name)
         domxml = lxml.etree.fromstring(dom.XMLDesc(
             flags=libvirt.VIR_DOMAIN_XML_INACTIVE))
@@ -43,6 +50,7 @@ class Libvirt:
         return data
 
     def _get_vbmc_info(self, name):
+        '''Get virtualbmc information for the named node'''
         try:
             out = subprocess.check_output(['vbmc', 'show', name, '-f', 'json'])
         except subprocess.CalledProcessError:
