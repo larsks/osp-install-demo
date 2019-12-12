@@ -18,6 +18,10 @@
   hosts: virthost
   tags: [virthost]
   tasks:
+    - name: make delorean repositories available
+      include_role:
+        name: delorean
+
     - name: ensure openvswitch is installed
       include_role:
         name: openvswitch

@@ -1,8 +1,4 @@
 ---
-- name: configure delorean repos
-  include_role:
-    name: delorean
-
 - name: install libvirt packages
   yum:
     enablerepo: delorean,delorean-train-testing,rdo-qemu-ev
