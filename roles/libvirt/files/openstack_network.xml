@@ -10,7 +10,7 @@
       <tag id="102" />
     </vlan>
   </portgroup>
-  <portgroup name="stirage">
+  <portgroup name="storage">
     <vlan>
       <tag id="103"/>
     </vlan>
