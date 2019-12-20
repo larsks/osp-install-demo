@@ -70,10 +70,13 @@
       include_role:
         name: undercloud_config
 
-    - name: register undercloud
-      tags: [register, extended]
+    - name: add repositories
+      tags: [repos]
       include_role:
-        name: undercloud_register
+        name: install_repositories
+      vars:
+        yum_repos: "{{ undercloud_yum_repos }}"
+      when: undercloud_yum_repos is defined
 
     - name: ensure a functional version of podman is installed
       tags: [bugs]

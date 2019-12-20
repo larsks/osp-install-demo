@@ -1,6 +1,6 @@
 ---
 plugin: libvirt_inventory
-uri: qemu+ssh://stack@esi-sandbox-1/system
+uri: qemu+ssh://root@esi-sandbox-1/system
 include_inactive: true
 networks:
   - 192.168.122.0/24
