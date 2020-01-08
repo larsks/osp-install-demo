@@ -1,0 +1,30 @@
+- import_playbook: step1.yml
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tags: undercloud_install
+  tasks:
+    - name: run undercloud install
+      command: openstack undercloud install
+      args:
+        chdir: /home/stack
+
+- import_playbook: step2.yml
+- import_playbook: step3.yml
+- import_playbook: step4.yml
+
+- hosts: undercloud
+  gather_facts: false
+  become: true
+  become_user: stack
+  tags: overcloud_install
+  tasks:
+    - name: run overcloud install
+      shell: |
+        pwd
+        . ./stackrc
+        sh overcloud-deploy.sh
+      args:
+        chdir: /home/stack
