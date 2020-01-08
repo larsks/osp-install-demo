@@ -1,13 +1,8 @@
 ---
-- name: verify that source image exists
-  stat:
-    path: "{{ rhel_image.path }}"
-  register: rhel_image_check
-
-- name: fail if rhel image is missing
-  fail:
-    msg: "rhel image ({{ rhel_image.path }}) is missing"
-  when: not rhel_image_check.stat.exists|default(false)
+- name: fetch base image
+  get_url:
+    url: "{{ base_image_url }}"
+    dest: "{{ base_image_path }}"
 
 - name: set undercloud_image_path fact
   set_fact:
@@ -16,8 +11,8 @@
 - name: create undercloud base image
   command: >-
     qemu-img create
-    -b {{ rhel_image.path }}
-    -F {{ rhel_image.format }}
+    -b {{ base_image_path }}
+    -F qcow2
     -f qcow2
     {{ undercloud_image_path }} {{ undercloud_image_size }}
   args:
@@ -35,10 +30,6 @@
         warn: false
       loop: "{{ undercloud_keys }}"
 
-    - name: apply https://access.redhat.com/solutions/4073061
-      tags: [bug]
-      include_tasks: solution_4073061.yml
-
     - name: copy customization script to virthost
       copy:
         src: customize.sh
@@ -51,8 +42,6 @@
         --upload {{ osp_demo_workdir }}/authorized_keys:/root/.ssh/authorized_keys
         --run {{ osp_demo_workdir }}/customize.sh
         --selinux-relabel
-      environment:
-        LIBGUESTFS_PATH: "{{ osp_demo_workdir }}/appliance"
 
   rescue:
 

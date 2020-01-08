@@ -5,7 +5,7 @@
   tasks:
     - name: ensure work directory is defined
       set_fact:
-        osp_demo_workdir: "/tmp/director-install-tmp"
+        osp_demo_workdir: "/tmp/tripleo-install-tmp"
       when: osp_demo_workdir is not defined
 
     - name: ensure work directory exists
@@ -78,10 +78,11 @@
         yum_repos: "{{ undercloud_yum_repos }}"
       when: undercloud_yum_repos is defined
 
-    - name: ensure a functional version of podman is installed
-      tags: [bugs]
+    - name: enable delorean repositories
       include_role:
-        name: podman
+        name: delorean
+      vars:
+        delorean_disable_repos: false
 
     - name: prepare stack user
       include_role:

@@ -1,9 +1,8 @@
 ---
 libvirt_uri: "qemu:///system"
 
-rhel_image:
-  path: /var/tmp/rhel-8.1-x86_64-kvm.qcow2
-  format: qcow2
+base_image_url: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2
+base_image_path: /var/lib/libvirt/images/CentOS-7-x86_64-GenericCloud.qcow2
 
 undercloud_image_size: 100g
 

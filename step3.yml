@@ -126,3 +126,9 @@
       vars:
         _controller_count: "{{ overcloud_hosts.controller.count }}"
         _compute_count: "{{ overcloud_hosts.compute.count }}"
+
+- name: refresh inventory
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - meta: refresh_inventory

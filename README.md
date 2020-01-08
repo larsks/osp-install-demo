@@ -51,35 +51,14 @@ The use of the `qemu+ssh://...` URI provides remote access to libvirt from the m
 
 There are a number of settings in `group_vars/all.yml` that control the playbooks. You may want to provide new values for:
 
-- `rhel_image`: this is the path (and format) of a RHEL 8.1 KVM guest image (such as can be downloaded from [the Red Hat customer portal][portal]).
 - `undercloud_keys`: this is a list of ssh public key URLs. If you use GitHub, `https://github.com/<username>.keys` is often a good source of your public keys. These will be used for both the `root` account and the `stack` account on the undercloud.
 - `overcloud_hosts`: this dictionary describes the configuration (ram, disk, vcpus, etc) of the virtual machines created by the playbooks.
-
-[portal]: https://access.redhat.com/downloads/content/479/ver=/rhel---8/8.1/x86_64/product-software
 
 ## Running the playbooks
 
 You will need to point `ansible-playbook` at your inventory directory (or configure `ansible.cfg` appropriately, or set the `ANSIBLE_INVENTORY` environment variable). Because I've been working with multiple virtual environments, I just use `-i <directory>` on the `ansible-playbook` command line.
 
 - Run `step1.yml`.
-
-  You will need to provide the following variables:
-
-  - `redhat_username` -- your customer portal username
-  - `redhat_password` -- your customer portal password
-  - `redhat_pool_ids` -- a list of pool to which your system should be attached
-
-  I drop these into a file named `credentials.yml`...
-
-  ```
-  ---
-  redhat_username: myusername@redhat.com
-  redhat_password: secretpassword
-  redhat_pool_ids:
-    - 12345678909876543210c323263339ff
-  ```
-
-  ...and pass that it on the `ansible-playbook` command line:
 
   ```
   ansible-playbook step1.yml -i kzn-19-4 -e @credentials.yml

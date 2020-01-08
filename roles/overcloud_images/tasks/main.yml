@@ -12,10 +12,16 @@
 - name: get overcloud images
   when: image_check is changed
   block:
+    - name: create image fetch directory
+      file:
+        path: "{{ overcloud_image_download_directory }}"
+        state: directory
+
     - name: fetch overcloud image packages
-      package:
-        state: installed
-        name: "{{ overcloud_image_packages }}"
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ overcloud_image_download_directory }}/{{ item.name }}.tar"
+      loop: "{{ overcloud_image_urls }}"
 
     - name: unpack overcloud images
       become: true
@@ -23,10 +29,10 @@
       shell: |-
         mkdir -p $HOME/images
         tar -C $HOME/images \
-        -xf {{ item }}
+        -xf {{ overcloud_image_download_directory }}/{{ item.name }}.tar
       args:
         warn: false
-      loop: "{{ overcloud_image_tarballs }}"
+      loop: "{{ overcloud_image_urls }}"
 
     - name: upload images to glance
       become: true

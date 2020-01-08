@@ -6,3 +6,11 @@ overcloud_image_packages:
 overcloud_image_tarballs:
   - /usr/share/rhosp-director-images/overcloud-full-latest-15.0.tar
   - /usr/share/rhosp-director-images/ironic-python-agent-latest-15.0.tar
+
+overcloud_image_urls:
+  - name: overcloud-full
+    url: https://images.rdoproject.org/train/rdo_trunk/current-tripleo-rdo/overcloud-full.tar
+  - name: ironic-python-agent
+    url: https://images.rdoproject.org/train/rdo_trunk/current-tripleo-rdo/ironic-python-agent.tar
+
+overcloud_image_download_directory: /var/tmp/overcloud-images

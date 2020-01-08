@@ -9,3 +9,4 @@
   command: >-
     yum-config-manager --disable "{{ ' '.join(item.repos) }}"
   loop: "{{ delorean_repos }}"
+  when: "delorean_disable_repos|default(false)|bool"

@@ -2,12 +2,17 @@
 
 TEMPLATES=/usr/share/openstack-tripleo-heat-templates
 
-deploy_args=(
-	-n network_data.yaml
+deploy_args=()
 
-	# Provide information about fetching container images
+if [ -f container-prepare-credentials.yaml ]; then
+deploy_args+=(
 	-e containers-prepare-credentials.yaml
+)
+fi
+
+deploy_args+=(
 	-e containers-prepare-parameter.yaml
+	-n network_data.yaml
 
 	# Node flavors and counts for the overcloud
 	-e templates/node-info.yaml

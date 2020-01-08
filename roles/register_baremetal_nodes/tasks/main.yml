@@ -20,6 +20,9 @@
   args:
     creates: ~/.nodes_introspect
 
+- debug:
+    var: groups
+
 - name: set role properties on controllers
   shell: |
     . ~/stackrc

@@ -1,6 +1,7 @@
 #!/bin/sh
 
 yum -y remove cloud-init
+yum -y upgrade
 
 chown -R root:root /root/.ssh
 chmod 700 /root/.ssh

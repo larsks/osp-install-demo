@@ -2,7 +2,7 @@
 - name: install tripleoclient
   package:
     state: present
-    name: python3-tripleoclient
+    name: python-tripleoclient
 
 - name: prepare container images
   become: true
@@ -21,6 +21,7 @@
   template:
     src: containers-prepare-credentials.j2.yaml
     dest: "{{ stack_home }}/{{ container_credentials_file }}"
+  when: redhat_username is defined
 
 - name: generate undercloud.conf
   become: true
