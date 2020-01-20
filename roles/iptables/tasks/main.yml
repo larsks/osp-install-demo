@@ -1,0 +1,17 @@
+---
+- name: disable firewalld
+  service:
+    name: firewalld
+    enabled: false
+    state: stopped
+
+- name: install iptables-services package
+  package:
+    name: iptables-services
+    state: installed
+
+- name: ensure iptables service is active
+  service:
+    name: iptables
+    enabled: true
+    state: started

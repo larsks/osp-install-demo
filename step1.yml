@@ -18,6 +18,10 @@
   hosts: virthost
   tags: [virthost]
   tasks:
+    - name: enable iptables
+      include_role:
+        name: iptables
+
     - name: make delorean repositories available
       include_role:
         name: delorean
