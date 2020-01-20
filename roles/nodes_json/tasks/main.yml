@@ -1,4 +1,9 @@
 ---
+- name: ensure python-lxml is installed
+  package:
+    name: python-lxml
+    state: present
+
 - name: generate nodes.json
   script: libvirt2nodes.py -o ~/nodes.json
   changed_when: false
