@@ -7,7 +7,8 @@
   tags: undercloud_install
   tasks:
     - name: run undercloud install
-      command: openstack undercloud install
+      command: >-
+        script -c 'openstack undercloud install' undercloud-install.log
       args:
         chdir: /home/stack
 
@@ -25,6 +26,6 @@
       shell: |
         pwd
         . ./stackrc
-        sh overcloud-deploy.sh
+        script -c 'sh overcloud-deploy.sh' overcloud-deploy.log
       args:
         chdir: /home/stack
