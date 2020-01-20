@@ -1,12 +1,21 @@
 ---
+- name: ensure yum-config-manager is available
+  package:
+    name: yum-utils
+    state: present
+
 - name: install delorean repos
   get_url:
     url: "{{ item.url }}"
     dest: "/etc/yum.repos.d/{{ item.name }}.repo"
   loop: "{{ delorean_repos }}"
+  loop_control:
+    label: "{{ item.url }}"
 
 - name: disable delorean repos
   command: >-
     yum-config-manager --disable "{{ ' '.join(item.repos) }}"
   loop: "{{ delorean_repos }}"
+  loop_control:
+    label: "{{ ' '.join(item.repos) }}"
   when: "delorean_disable_repos|default(false)|bool"
