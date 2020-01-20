@@ -19,6 +19,14 @@
     name: "{{ libvirt_packages }}"
     state: present
 
+- name: ensure images directory exists
+  file:
+    path: /var/lib/libvirt/images
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: activate libvirt service
   service:
     name: libvirtd
