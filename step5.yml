@@ -4,7 +4,7 @@
   tasks:
     - name: ensure python virtualenv command is installed
       package:
-        name: python3-virtualenv
+        name: python2-virtualenv
         state: present
 
 # The following play is an ugly hack: we need a newer version of 
@@ -32,13 +32,13 @@
 
     - name: symlink system selinux module into virtualenv
       shell: |
-        selinux_module_path=$(python3 -c 'import selinux; import os; \
+        selinux_module_path=$(python -c 'import selinux; import os; \
           print(os.path.dirname(selinux.__file__))')
-        ln -sf $selinux_module_path ~/openstackenv/lib/python3.6/site-packages/
+        ln -sf $selinux_module_path ~/openstackenv/lib/python2.7/site-packages/
 
-        selinux_lib_path=$(python3 -c 'import _selinux; import os; \
+        selinux_lib_path=$(python -c 'import _selinux; import os; \
           print(_selinux.__file__)')
-        ln -sf $selinux_lib_path ~/openstackenv/lib/python3.6/site-packages/
+        ln -sf $selinux_lib_path ~/openstackenv/lib/python2.7/site-packages/
       register: linkit
 
 - hosts: undercloud
